@@ -21,7 +21,7 @@ os.environ["PYSPARK_SUBMIT_ARGS"] = (
 )
 
 spark = (
-    pyspark.sql.SparkSession.builder.appName("DibimbingStreaming")
+    pyspark.sql.SparkSession.builder.appName("SparkStreaming")
     .master(spark_host)
     .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0")
     .config("spark.sql.shuffle.partitions", 4)
@@ -33,12 +33,12 @@ spark.sparkContext.setLogLevel("WARN")
 
 schema = StructType(
     [
-        StructField("order_id", StringType(), True),
-        StructField("customer_id", IntegerType(), True),
-        StructField("furniture", StringType(), True),
-        StructField("color", StringType(), True),
-        StructField("price", IntegerType(), True),
-        StructField("ts", LongType(), True),
+        StructField("transaction_id", StringType(), True),
+        StructField("user_id", IntegerType(), True),
+        StructField("item_category", StringType(), True),
+        StructField("item_material", StringType(), True),
+        StructField("purchase_value", IntegerType(), True),
+        StructField("timestamp", LongType(), True),
     ]
 )
 
@@ -50,11 +50,21 @@ stream_df = (
     .load()
 )
 
-parsed_df = stream_df.selectExpr("CAST(value AS STRING)").select(from_json(col("value"), schema).alias("data")).select("data.*")
+parsed_df = (
+            stream_df.selectExpr("CAST(value AS STRING)")
+                     .select(from_json(col("value"), schema)
+                     .alias("data")).select("data.*")
+)
 
 avg_price_df = parsed_df.groupBy("furniture").agg(avg("price").alias("avg_price"))
 
 # Write the result to the console
-query = avg_price_df.writeStream.outputMode("complete").format("console").trigger(processingTime="10 seconds").start()
+query = (
+    avg_price_df.writeStream
+                .outputMode("complete")
+                .format("console")
+                .trigger(processingTime="10 seconds")
+                .start()
+)
 
 query.awaitTermination()
