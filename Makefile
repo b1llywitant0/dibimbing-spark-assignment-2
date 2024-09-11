@@ -12,7 +12,7 @@ docker-build:
 	@echo '__________________________________________________________'
 	@echo 'Building Docker Images ...'
 	@echo '__________________________________________________________'
-	@chmod 777 logs/
+	@chmod 1777 logs/
 	@chmod 777 notebooks/
 	@docker network inspect streaming-network >/dev/null 2>&1 || docker network create streaming-network
 	@echo '__________________________________________________________'
@@ -72,9 +72,10 @@ spark-consume:
 	@echo '__________________________________________________________'
 	@echo 'Consuming fake events ...'
 	@echo '__________________________________________________________'
+	@docker exec ${SPARK_WORKER_CONTAINER_NAME}-1 chmod 1777 /tmp
 	@docker exec ${SPARK_WORKER_CONTAINER_NAME}-1 \
 		spark-submit \
-		/scripts/spark-event-consumer.py
+		/scripts/spark-event-consumer.py		
 
 clean:
 	@bash ./scripts/goodnight.sh

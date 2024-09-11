@@ -31,7 +31,7 @@ class DataGenerator(object):
             faker.random_element(elements=("Gold", "Silver", "Platinum", "Palladium")),
             faker.random_int(min=100, max=50000),
             faker.unix_time(
-                start_datetime=now - timedelta(minutes=60), end_datetime=now
+                start_datetime=now - timedelta(minutes=15), end_datetime=now
             ),
         ]
 
